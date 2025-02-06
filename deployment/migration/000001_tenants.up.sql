@@ -3,9 +3,9 @@ CREATE TABLE IF NOT EXISTS tenants (
     name TEXT NOT NULL,
     phone TEXT NOT NULL,
     email TEXT,
-    created_at TIMESTAMPT DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT NOW(),
     created_by BIGINT,
-    updated_at TIMESTAMPT DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
     updated_by BIGINT,
-    deleted_at TIMESTAMPT DEFAULT NULL
+    deleted_at TIMESTAMP DEFAULT NULL
 );

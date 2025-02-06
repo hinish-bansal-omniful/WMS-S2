@@ -2,28 +2,46 @@ package router
 
 import (
 	"context"
-	"wms/controllers"
+	controller "wms/controllers"
 
+	postgres "wms/db"
+	"wms/repo"
+	"wms/service"
+
+	"github.com/gin-gonic/gin"
 	"github.com/omniful/go_commons/http"
 )
 
-func InternalRoutes(ctx context.Context, server *http.Server) (err error) {
-	router := server.Engine // Using Gin Engine from server
+func InternalRoutes(ctx context.Context, s *http.Server) (err error) {
+	rtr := s.Engine.Group("/api/v1")
 
-	// API Versioning (optional)
-	api := router.Group("/api/v1")
-	{
-		// Warehouse Hub Routes
-		api.GET("/hubs/:id", controllers.GetHub) // View a single hub
-		api.POST("/hubs", controllers.CreateHub) // Create a new hub
+	// todo use go wire if needed
+	newRepository := repo.NewRepository(postgres.GetCluster().DbCluster)
+	newService := service.NewService(newRepository)
+	HubController := controller.NewHubController(newService)
 
-		// SKU Routes
-		api.GET("/skus", controllers.GetSKUs) // Get multiple SKUs
-		api.POST("/skus", controllers.CreateSKU)
+	skuRepo := repo.NewSKURepository(postgres.GetCluster().DbCluster)
+	skuService := service.NewSKUService(skuRepo)
+	skuController := controller.NewSkuController(skuService)
 
-		// Inventory Routes
-		api.GET("/inventory", controllers.GetInventory)  // View inventory
-		api.PUT("/inventory", controllers.EditInventory) // Edit inventory
-	}
-	return nil
+	inventoryRepo := repo.NewInventoryRepository(postgres.GetCluster().DbCluster)
+	inventoryService := service.NewInventoryService(inventoryRepo)
+	inventoryController := controller.NewInventoryController(inventoryService)
+
+	// make apis for it
+	rtr.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{"msg": "mst"})
+	})
+
+	rtr.GET("/get_hubs", HubController.GetHubs())
+	rtr.GET("/get_hub/:id", HubController.GetHubByID())
+	rtr.POST("/hubs", HubController.CreateHub())
+
+	rtr.GET("/sku/:sku_id", skuController.GetSKU())
+	rtr.GET("/sku/seller/:seller_id", skuController.GetSkuBySellerID())
+	rtr.POST("/sku", skuController.CreateSKU())
+
+	rtr.GET("/inventory/:hub_id/:sku_id", inventoryController.GetInventoryDetails())
+
+	return
 }

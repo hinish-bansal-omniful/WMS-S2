@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 	appinit "wms/init"
+	"wms/router"
 
 	"github.com/omniful/go_commons/config"
 	"github.com/omniful/go_commons/db/sql/migration"
@@ -55,15 +56,15 @@ func runHttpServer(ctx context.Context) {
 	//	panic(err)
 	//}
 	//
-	//err = router.InternalRoutes(ctx, server)
-	//if err != nil {
-	//	log.Errorf(err.Error())
-	//	panic(err)
-	//}
+	err := router.InternalRoutes(ctx, server)
+	if err != nil {
+		log.Errorf(err.Error())
+		panic(err)
+	}
 
 	log.Infof("Starting server on port" + config.GetString(ctx, "server.port"))
 
-	err := server.StartServer("WM-service")
+	err = server.StartServer("WMS-S2")
 	if err != nil {
 		log.Errorf(err.Error())
 		panic(err)
