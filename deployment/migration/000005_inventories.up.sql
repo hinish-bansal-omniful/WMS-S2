@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS  inventories (
+    id  BIGSERIAL NOT NULL PRIMARY KEY,
+    hub_id BIGINT NOT NULL,
+    sku_id BIGINT not NULL,
+    quantity INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (hub_id) REFERENCES hubs(id) ON DELETE CASCADE,
+    FOREIGN KEY (sku_id) REFERENCES sku(id) ON DELETE CASCADE
+);
