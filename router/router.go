@@ -42,6 +42,8 @@ func InternalRoutes(ctx context.Context, s *http.Server) (err error) {
 	rtr.POST("/sku", skuController.CreateSKU())
 
 	rtr.GET("/inventory/:hub_id/:sku_id", inventoryController.GetInventoryDetails())
+	rtr.PUT("/inventory/", inventoryController.UpdateInventory())
+	rtr.GET("/inventory/validate", inventoryController.ValidateInventory())
 
 	return
 }

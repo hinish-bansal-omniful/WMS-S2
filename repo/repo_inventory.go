@@ -13,6 +13,8 @@ import (
 
 type InventoryRepository interface {
 	GetInventoryByHubAndSKU(ctx context.Context, hubID int, skuID int) (domain.Inventory, error)
+	UpdateInventory(ctx context.Context, inventory domain.Inventory) error
+	ValidateInventory(ctx context.Context, skuID, hubID, quantity int) (bool, error)
 }
 
 type inventoryRepository struct {
@@ -36,4 +38,32 @@ func (r *inventoryRepository) GetInventoryByHubAndSKU(ctx context.Context, hubID
 	}
 
 	return inventory, nil
+}
+
+func (r *inventoryRepository) UpdateInventory(ctx context.Context, inventory domain.Inventory) error {
+	result := r.db.GetMasterDB(ctx).Model(&inventory).
+		Where(" hub_id = ? AND sku_id = ?", inventory.HubID, inventory.SKUID).
+		Updates(inventory)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("no inventory record found to update")
+	}
+
+	return nil
+}
+func (r *inventoryRepository) ValidateInventory(ctx context.Context, skuID, hubID, quantity int) (bool, error) {
+	var totalQuantity int
+	result := r.db.GetMasterDB(ctx).Table("inventories").
+		Where("sku_id = ? AND hub_id = ?", skuID, hubID).
+		Select("SUM(quantity)").Row().Scan(&totalQuantity)
+
+	if result != nil {
+		return false, errors.New("error fetching inventory data")
+	}
+
+	return totalQuantity >= quantity, nil
 }
